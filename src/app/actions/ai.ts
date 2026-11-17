@@ -63,7 +63,7 @@ export async function sendAiMessageAction(
     }
     demoAppendChatMessage(user.id, "user", message);
     const services = await getAssistantServices();
-    const reply = demoAssistantReply(message, services);
+    const reply = demoAssistantReply(message, services, user.role);
     demoAppendChatMessage(user.id, "assistant", reply);
     revalidatePath(AI_PATH);
     return { ok: true, message: "Balasan diterima.", reply };
@@ -103,6 +103,7 @@ export async function sendAiMessageAction(
       { role: "user" as const, content: message },
     ],
     services,
+    userRole: user.role,
   });
 
   if (!completion.ok) {

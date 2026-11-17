@@ -55,7 +55,7 @@ export default async function AiAssistantPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <AiChat messages={messages} aiEnabled={aiEnabled} />
+          <AiChat messages={messages} aiEnabled={aiEnabled} userRole={user.role} />
         </CardContent>
       </Card>
 

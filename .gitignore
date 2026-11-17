@@ -39,6 +39,15 @@ yarn-error.log*
 # vercel
 .vercel
 
+# temp file dari cloud sync / Google Drive
+.tmp.driveupload/
+
+# file sistem Windows
+desktop.ini
+
+# output development
+dev-output.txt
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

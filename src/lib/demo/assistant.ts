@@ -19,7 +19,7 @@ export type AssistantServiceInfo = {
 
 type Rule = {
   test: RegExp;
-  reply: (services: AssistantServiceInfo[]) => string;
+  reply: (services: AssistantServiceInfo[], userRole?: string) => string;
 };
 
 function serviceLine(service: AssistantServiceInfo): string {
@@ -27,13 +27,23 @@ function serviceLine(service: AssistantServiceInfo): string {
 }
 
 function catalogBlock(services: AssistantServiceInfo[]): string {
-  return services.slice(0, 7).map(serviceLine).join("\n");
+  return services.slice(0, 10).map(serviceLine).join("\n");
+}
+
+function roleHint(userRole?: string): string {
+  if (!userRole) return "";
+  const hints: Record<string, string> = {
+    customer: "Anda berperan sebagai pelanggan. Saya bisa membantu konsultasi kerusakan, estimasi layanan, dan panduan first-aid. Untuk status pesanan, silakan cek menu Pesanan di dashboard Anda.",
+    admin: "Anda berperan sebagai admin. Saya bisa membantu data operasional, keuangan, dan manajemen pelanggan dalam batas wewenang admin.",
+    teknisi: "Anda berperan sebagai teknisi. Saya bisa membantu antrean pesanan, diagnosa awal, dan layanan teknis yang ditugaskan kepada Anda.",
+  };
+  return `\n${hints[userRole] ?? ""}`;
 }
 
 const RULES: Rule[] = [
   {
     test: /lambat|lemot|lelet|freeze|hang|restart|blue\s?screen|bsod|mati total|tidak (bisa |dapat )?menyala|tidak hidup/i,
-    reply: (services) => {
+    reply: (services, userRole) => {
       const recovery = services.find((service) =>
         service.name.toLowerCase().includes("data"),
       );
@@ -43,17 +53,19 @@ const RULES: Rule[] = [
         "Yang bisa Anda cek sendiri dulu:",
         "1. Dengarkan apakah kipas berputar kencang atau perangkat panas berlebih.",
         "2. Coba masuk Safe Mode — kalau lancar di Safe Mode, kemungkinan besar masalah software.",
+        "3. Jangan bongkar casing sendiri kalau perangkat masih garansi.",
         recovery
           ? `3. Kalau ada file penting yang belum di-backup, amankan dulu. Kami punya layanan ${recovery.name} mulai ${formatCurrency(recovery.startingPrice)}.`
           : "3. Kalau ada file penting yang belum di-backup, amankan dulu.",
         "",
         "Kalau butuh pemeriksaan teknisi, buat service order dan ceritakan gejalanya di sana. Ini gambaran umum, bukan diagnosis pasti.",
+        roleHint(userRole),
       ].join("\n");
     },
   },
   {
     test: /internet|wifi|wi-fi|jaringan|network|koneksi|router|putus|sinyal/i,
-    reply: (services) => {
+    reply: (services, userRole) => {
       const network = services.filter((service) =>
         service.name.toLowerCase().includes("jaringan"),
       );
@@ -69,6 +81,7 @@ const RULES: Rule[] = [
           : "",
         "",
         "Kalau tetap bermasalah setelah itu, buat service order agar teknisi memeriksa langsung. Ini gambaran umum, bukan diagnosis pasti.",
+        roleHint(userRole),
       ]
         .filter(Boolean)
         .join("\n");
@@ -76,17 +89,18 @@ const RULES: Rule[] = [
   },
   {
     test: /keyboard|tuts|tombol|layar|screen|monitor|baterai|batre|charger|cas|suara|speaker|kamera|webcam/i,
-    reply: () => [
+    reply: (_, userRole) => [
       "Untuk kerusakan komponen seperti itu, langkah amannya: catat persis bagian mana yang bermasalah dan sejak kapan, lalu jangan bongkar sendiri kalau perangkat masih garansi.",
       "",
       "Saat membuat service order, tulis merek, model, dan gejala sedetail mungkin — semakin detail, semakin cepat teknisi mendiagnosa. Foto bagian yang rusak juga sangat membantu.",
       "",
       "Ini gambaran umum, bukan diagnosis pasti.",
+      roleHint(userRole),
     ].join("\n"),
   },
   {
     test: /hard\s?disk|hdd|ssd|data|recovery|hilang|terhapus|tidak terbaca|bad sector/i,
-    reply: (services) => {
+    reply: (services, userRole) => {
       const recovery = services.find((service) =>
         service.name.toLowerCase().includes("data"),
       );
@@ -99,6 +113,7 @@ const RULES: Rule[] = [
           : "",
         "",
         "Ini gambaran umum, bukan diagnosis pasti.",
+        roleHint(userRole),
       ]
         .filter(Boolean)
         .join("\n");
@@ -126,8 +141,52 @@ const RULES: Rule[] = [
   },
   {
     test: /halo|hai|hei|pagi|siang|sore|malam|assalamu|makasih|terima kasih|thanks|oke|ok\b/i,
-    reply: () =>
-      "Halo! Saya asisten demo ServiceKomputer. Ceritakan masalah perangkat Anda — misalnya laptop lambat, WiFi putus, atau tanya harga layanan — nanti saya bantu mengarahkan. Kalau sudah yakin, Anda juga bisa langsung buat service order dari dashboard.",
+    reply: (_, userRole) =>
+      `Halo! Saya asisten ServiceKomputer. ${roleHint(userRole) ?? "Ceritakan masalah perangkat Anda — misalnya laptop lambat, WiFi putus, atau tanya harga layanan — nanti saya bantu mengarahkan. Kalau sudah yakin, Anda juga bisa langsung buat service order dari dashboard."}`,
+  },
+  {
+    test: /status pesanan|pesanan saya|order saya|tracking|di mana pesanan|progress/i,
+    reply: () => [
+      "Untuk mengecek status pesanan Anda, silakan buka menu Pesanan di dashboard customer Anda.",
+      "Di sana Anda bisa melihat status setiap service order, estimasi selesai, dan biaya terkait.",
+      "Kalau butuh detail lebih lanjut tentang satu pesanan tertentu, nomor pesanan apa yang ingin Anda cek?",
+    ].join("\n"),
+  },
+  {
+    test: /cara membuat pesanan|cara order|bagaimana pesan|langkah order/i,
+    reply: () => [
+      "Berikut cara membuat service order:",
+      "1. Masuk ke dashboard customer Anda.",
+      "2. Klik 'Pesan Service' atau buka menu layanan.",
+      "3. Pilih layanan yang sesuai, isi detail perangkat dan gejala yang dialami.",
+      "4. Tambahkan foto jika ada, lalu kirim pesanan.",
+      "5. Tunggu konfirmasi dari tim kami.",
+      "",
+      "Ini gambaran umum. Kalau ada kendala, hubungi kami via WhatsApp atau telepon.",
+    ].join("\n"),
+  },
+  {
+    test: /garansi|jaminan|warranty/i,
+    reply: () => [
+      "Setiap perbaikan yang kami lakukan dilengkapi jaminan kerja sesuai kebijakan layanan yang Anda pilih.",
+      "Durasi dan cakupan jaminan akan dijelaskan oleh teknisi saat diagnosa dan tercantum pada invoice service order Anda.",
+      "Untuk detail jaminan layanan tertentu, silakan tanya langsung ke tim kami atau cek detail pesanan di dashboard.",
+    ].join("\n"),
+  },
+  {
+    test: /kontak|whatsapp|telepon|alamat|workshop|lokasi|jam buka/i,
+    reply: () => [
+      "Anda bisa menghubungi kami melalui kontak resmi kami. Detail kontak, alamat workshop, dan jam operasional dapat dilihat di halaman kontak website ini.",
+      "Atau Anda bisa langsung datang ke workshop kami selama jam operasional untuk konsultasi langsung dengan teknisi.",
+    ].join("\n"),
+  },
+  {
+    test: /bongkar|buka casing|lebarkan|pasang ulang|instal ulang|format|reinstall/i,
+    reply: () => [
+      "Untuk langkah seperti membongkar casing, format ulang, atau install ulang sistem, kami menyarankan untuk dilakukan oleh teknisi terlatih untuk menghindari kerusakan lebih lanjut atau kehilangan data.",
+      "Jika Anda yakin ingin melakukannya sendiri, pastikan untuk mencadangkan data penting terlebih dahulu.",
+      "Atau Anda bisa membuat service order agar tim kami yang menangani langsung.",
+    ].join("\n"),
   },
 ];
 
@@ -135,11 +194,12 @@ const RULES: Rule[] = [
 export function demoAssistantReply(
   message: string,
   services: AssistantServiceInfo[],
+  userRole?: string,
 ): string {
   const text = message.trim();
   for (const rule of RULES) {
     if (rule.test.test(text)) {
-      return rule.reply(services);
+      return rule.reply(services, userRole);
     }
   }
 

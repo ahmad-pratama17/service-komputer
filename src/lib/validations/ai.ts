@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const MAX_CHAT_MESSAGE_LENGTH = 1000;
-export const AI_HISTORY_LIMIT = 12;
+export const MAX_CHAT_MESSAGE_LENGTH = 2000;
+export const AI_HISTORY_LIMIT = 20;
 
 export const aiMessageSchema = z.object({
   message: z

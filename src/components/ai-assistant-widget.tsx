@@ -55,7 +55,6 @@ export function AiAssistantWidget() {
   const [sending, setSending] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [iconMissing, setIconMissing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const visible =
@@ -191,20 +190,9 @@ export function AiAssistantWidget() {
           className="flex max-h-[70vh] w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950"
         >
           <header className="flex items-center gap-2.5 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-            {iconMissing ? (
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-                <Bot className="h-5 w-5" aria-hidden />
-              </span>
-            ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src="/ai-icon.png"
-                alt=""
-                aria-hidden
-                className="h-9 w-9 shrink-0 rounded-full object-cover"
-                onError={() => setIconMissing(true)}
-              />
-            )}
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
+              <Bot className="h-5 w-5" aria-hidden />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 AI Assistant
@@ -394,16 +382,8 @@ export function AiAssistantWidget() {
       >
         {open ? (
           <X className="h-6 w-6 text-zinc-700 dark:text-zinc-200" aria-hidden />
-        ) : iconMissing ? (
-          <Bot className="h-7 w-7 text-blue-600 dark:text-blue-400" aria-hidden />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src="/ai-icon.png"
-            alt="AI Assistant"
-            className="h-full w-full object-cover"
-            onError={() => setIconMissing(true)}
-          />
+          <Bot className="h-7 w-7 text-blue-600 dark:text-blue-400" aria-hidden />
         )}
       </button>
     </div>

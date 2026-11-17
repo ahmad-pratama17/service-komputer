@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
     }
     demoAppendChatMessage(user.id, "user", message);
     const services = await getAssistantServices();
-    const reply = demoAssistantReply(message, services);
+    const reply = demoAssistantReply(message, services, user.role);
     demoAppendChatMessage(user.id, "assistant", reply);
     return NextResponse.json({
       ok: true,
@@ -144,6 +144,7 @@ export async function POST(request: NextRequest) {
       { role: "user" as const, content: message },
     ],
     services,
+    userRole: user.role,
   });
 
   if (!completion.ok) {

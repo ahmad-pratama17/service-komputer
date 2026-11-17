@@ -9,8 +9,8 @@ import type { PhotoStore } from "@/lib/order-photos";
  */
 
 export const RATE_LIMIT_WINDOW_MS = 60_000;
-export const RATE_LIMIT_MAX_MESSAGES = 5;
-export const RATE_LIMIT_MAX_CHARS_PER_WINDOW = 4000;
+export const RATE_LIMIT_MAX_MESSAGES = 10;
+export const RATE_LIMIT_MAX_CHARS_PER_WINDOW = 8000;
 
 export type RateLimitResult =
   | { ok: true; remaining: number }

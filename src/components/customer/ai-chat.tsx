@@ -19,6 +19,7 @@ import type { AiRole } from "@/types";
 type AiChatProps = {
   messages: AiMessage[];
   aiEnabled: boolean;
+  userRole?: string;
 };
 
 type Bubble = {
@@ -97,7 +98,7 @@ export async function postAiChat(
   }
 }
 
-export function AiChat({ messages, aiEnabled }: AiChatProps) {
+export function AiChat({ messages, aiEnabled, userRole }: AiChatProps) {
   const [draft, setDraft] = useState("");
   const [optimistic, setOptimistic] = useState<Bubble[]>([]);
   const [confirmed, setConfirmed] = useState<Bubble[]>([]);
@@ -141,7 +142,7 @@ export function AiChat({ messages, aiEnabled }: AiChatProps) {
     setNotice(null);
     setSending(true);
 
-    const result = await postAiChat({ message: value });
+    const result = await postAiChat({ message: value, userRole });
 
     if (!result.ok) {
       setOptimistic([]);
